@@ -1,0 +1,152 @@
+---
+Metadata:
+  AWSToolsMetrics:
+    IaC_Generator: "arn:aws:cloudformation:eu-west-3:979277815500:generatedTemplate/d908154f-a3c4-4e07-95a2-f106a0123db3"
+Resources:
+  S3BucketMinecraftjacquess3paris:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Retain"
+    Properties:
+      AbacStatus: "Disabled"
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      BucketName: "minecraft-jacques-s3-paris"
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: true
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "AES256"
+      NotificationConfiguration:
+        QueueConfigurations: []
+        TopicConfigurations: []
+        LambdaConfigurations:
+        - Function: "arn:aws:lambda:eu-west-3:979277815500:function:minecraft-s3-backup-logger"
+          Filter:
+            S3Key:
+              Rules:
+              - Value: "prism_launcher/instances/"
+                Name: "Prefix"
+          Event: "s3:ObjectCreated:Put"
+      LifecycleConfiguration:
+        TransitionDefaultMinimumObjectSize: "all_storage_classes_128K"
+        Rules:
+        - Status: "Enabled"
+          NoncurrentVersionExpiration:
+            NoncurrentDays: 1
+            NewerNoncurrentVersions: 2
+          Id: "delete-non-current-version-of-minecraft-saves"
+      VersioningConfiguration:
+        Status: "Enabled"
+  S3BucketPolicyMinecrafts3cloudtrail:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::BucketPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Bucket:
+        Ref: "S3BucketMinecrafts3cloudtrail"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Condition:
+            StringEquals:
+              AWS:SourceArn: "arn:aws:cloudtrail:eu-west-3:979277815500:trail/minecraft-jacques-cloudrail"
+          Resource: "arn:aws:s3:::minecraft-s3-cloudtrail"
+          Action: "s3:GetBucketAcl"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudtrail.amazonaws.com"
+          Sid: "AWSCloudTrailAclCheck20150319-04cb15cd-8f29-4302-b800-4afc8cc9acbe"
+        - Condition:
+            StringEquals:
+              AWS:SourceArn: "arn:aws:cloudtrail:eu-west-3:979277815500:trail/minecraft-jacques-cloudrail"
+              s3:x-amz-acl: "bucket-owner-full-control"
+          Resource: "arn:aws:s3:::minecraft-s3-cloudtrail/AWSLogs/979277815500/*"
+          Action: "s3:PutObject"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudtrail.amazonaws.com"
+          Sid: "AWSCloudTrailWrite20150319-42d5f30e-8b28-47fd-9b11-d020e59a9b1f"
+  S3BucketPolicyMinecraftjacquess3paris:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::BucketPolicy"
+    DeletionPolicy: "Retain"
+    Properties:
+      Bucket:
+        Ref: "S3BucketMinecraftjacquess3paris"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Condition:
+            StringEquals:
+              AWS:SourceArn: "arn:aws:cloudtrail:eu-west-3:979277815500:trail/minecraft-jacques-cloudrail"
+          Resource: "arn:aws:s3:::minecraft-jacques-s3-paris"
+          Action: "s3:GetBucketAcl"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudtrail.amazonaws.com"
+          Sid: "AWSCloudTrailAclCheck20150319-978fa5fc-ad48-48d2-9355-56ca078be461"
+        - Condition:
+            StringEquals:
+              AWS:SourceArn: "arn:aws:cloudtrail:eu-west-3:979277815500:trail/minecraft-jacques-cloudrail"
+              s3:x-amz-acl: "bucket-owner-full-control"
+          Resource: "arn:aws:s3:::minecraft-jacques-s3-paris/CloudTrail/AWSLogs/979277815500/*"
+          Action: "s3:PutObject"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudtrail.amazonaws.com"
+          Sid: "AWSCloudTrailWrite20150319-3467a802-ea2a-4fee-96e7-3f07054d49c3"
+  CloudTrailTrailMinecraftjacquescloudrail:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::CloudTrail::Trail"
+    DeletionPolicy: "Retain"
+    Properties:
+      IncludeGlobalServiceEvents: true
+      EventSelectors:
+      - IncludeManagementEvents: true
+        DataResources: []
+        ReadWriteType: "All"
+        ExcludeManagementEventSources: []
+      AggregationConfigurations: []
+      IsMultiRegionTrail: true
+      AdvancedEventSelectors: []
+      TrailName: "minecraft-jacques-cloudrail"
+      S3BucketName:
+        Ref: "S3BucketMinecrafts3cloudtrail"
+      EnableLogFileValidation: false
+      Tags: []
+      IsOrganizationTrail: false
+      InsightSelectors: []
+      IsLogging: true
+  S3BucketMinecrafts3cloudtrail:
+    UpdateReplacePolicy: "Retain"
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Retain"
+    Properties:
+      AbacStatus: "Disabled"
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      LifecycleConfiguration:
+        TransitionDefaultMinimumObjectSize: "all_storage_classes_128K"
+        Rules:
+        - Status: "Enabled"
+          ExpirationInDays: 45
+          Id: "delete-logs"
+      BucketName: "minecraft-s3-cloudtrail"
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: true
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "AES256"
